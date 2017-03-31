@@ -9,9 +9,6 @@ addpath('../libsvm/matlab')
 path_timit = '/home/vincent/idv/Cochlea/timit/timit/';
 curr_data_folder = 'hots_data';
 path_data = fullfile(pwd, curr_data_folder);
-if exist(path_data, 'dir')
-  rmdir(path_data, 's');
-end
 
 aff = 1;
 create_events = 0;
@@ -59,8 +56,8 @@ events_train.p = zeros(size(events_train.p));
 events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
-[centers, events, events2] = generic_hots(path_data, params, events_train_hots, ...
-  events_train, events_test);
+compute_generichots(path_data, params, events_train_hots, events_train, events_test);
+[centers, events, events2] = read_generichots_output(path_data, params);
 
 if aff
   occs = cell(1,params.nbLayers);

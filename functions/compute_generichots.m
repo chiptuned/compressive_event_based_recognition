@@ -1,12 +1,7 @@
-function [varargout] = generic_hots(path_data, params, events_train_hots, events_train, events_test)
+function [] = compute_generic_hots(path_data, params, events_train_hots, events_train, events_test)
 % generic_hots(path, params, events_train, events_test) perform hots for events
 % in events_test, training the centers with events_train.
 %
-% [centers] = generic_hots(...) return the centers.
-%
-% [centers, events] = generic_hots(...) return events performed by hots.
-% [centers, events, events2] = generic_hots(...) return events performed by hots.
-% events are for classif learning purposes. events2 are for testing purposes
 %
 %
 % INPUTS : - path_data : string to the working directory of the processing_standard;
@@ -23,7 +18,7 @@ function [varargout] = generic_hots(path_data, params, events_train_hots, events
 
 
 % Depends on write_label_data, write_audio_data (should fieldnames events to trigger
-% functions according to events), prepare_hots_data, load_audio_data and read_centers
+% functions according to events), prepare_hots_data
 
 % NOTE : Integrity of events and labels should be checked
 
@@ -73,39 +68,3 @@ command = [generic_hots_main, ' ', filename_hotsparams];
 system(command);
 fprintf('---- END OF GENERIC HOTS EXECUTION ----\nHots : ');
 toc;
-
-if nargout > 3
-  error(['Too many output arguments. Maximum should be 3 (centers,', ...
-  ' events_train_classif, events_test_classif).'])
-end
-
-if nargout > 0
-  centers = cell(1,params.nbLayers);
-  if nargout > 1
-  events = cell(1,params.nbLayers+1);
-  events(1) = {load_audio_data(fullfile(path_data, ['events_train_classif.dat']))};
-  end
-  if nargout > 2
-  events2 = cell(1,params.nbLayers+1);
-  events2(1) = {load_audio_data(fullfile(path_data, ['events_test_classif.dat']))};
-  end
-  for ind = 1:params.nbLayers
-    centers_file = fullfile(path_data, ['centersOfLayer', num2str(ind), '.txt']);
-    centers(ind) = {read_centers(centers_file)};
-    if nargout > 1
-      events_file = fullfile(path_data, ['events_train_classif_outputOfLayer', num2str(ind), '.dat']);
-      events(ind+1) = {load_audio_data(events_file)};
-    end
-    if nargout > 2
-      events_file = fullfile(path_data, ['events_test_classif_outputOfLayer', num2str(ind), '.dat']);
-      events2(ind+1) = {load_audio_data(events_file)};
-    end
-  end
-  varargout{1} = centers;
-  if nargout > 1
-    varargout{2} = events;
-  end
-  if nargout > 2
-    varargout{3} = events2;
-  end
-end
