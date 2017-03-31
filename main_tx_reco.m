@@ -12,12 +12,13 @@ path_data = fullfile(pwd, curr_data_folder);
 
 aff = 1;
 create_events = 0;
+launch_hots = 1;
 nb_levels_crossing = 50;
 ratio_hots_learning_of_train_timit = 0.01;
 ratio_classif_learning_of_train_timit = 0.03;
 ratio_classif_test_of_test_timit = 0.15;
 
-params.nbLayers = 5;
+params.nbLayers = 2;
 params.nbCenters = [8, 16, 32, 64, 128];
 params.tau = [1000., 4000., 16000., 64000., 256000.];
 params.radius = [4, 8, 16, 32, 64];
@@ -56,23 +57,37 @@ events_train.p = zeros(size(events_train.p));
 events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
-compute_generichots(path_data, params, events_train_hots, events_train, events_test);
+if launch_hots
+    compute_generichots(path_data, params, events_train_hots, events_train, events_test);
+end
 [centers, events, events2] = read_generichots_output(path_data, params);
 
 if aff
   occs = cell(1,params.nbLayers);
 
+  nb_plots = numel(events);
+  if nb_plots > 4
+    nb_plots_x = 2;
+    nb_plots_y = ceil(nb_plots/2);
+  else
+    nb_plots_x = 1;
+    nb_plots_y = nb_plots;
+  end
+
+  handle_subp = [];
   figure;
-  sbp1 = subplot(311);
-plot_events(events{1});
-
-sbp2 = subplot(312);
-plot_events(events{2});
-
-sbp3 = subplot(313);
-plot_events(events{3});
-linkaxes([sbp1, sbp2, sbp3]);
-axis([5.15e7 5.45e7 0 49])
+  for ind = 1:nb_plots
+    handle_subp(ind) = subplot(nb_plots_y,nb_plots_x,ind);
+    plot_events(events{ind});
+    if ind == 1
+      title('input');
+    else
+      title(['output of layer ', num2str(ind)-1]);
+    end
+  end
+  linkaxes(handle_subp);
+  axis([5.15e7 5.45e7 0 49])
+  pause
   
   for ind = 1:params.nbLayers
     occs(ind) = {occurancies_centers(centers{ind}, events{ind+1})};

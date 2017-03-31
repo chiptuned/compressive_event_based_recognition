@@ -1,8 +1,10 @@
 function [signatures] = compute_all_signatures1D_from_events(events, labels, nbCenters)
+% easy to adapt in c++, takes nbCenters avoiding calculating it with numel(unique(events.p))
 
 signatures = zeros(numel(labels{1}),nbCenters+2);
 nb_empty_sig = 0;
 whichExampleItIs = 1;
+thresh_events = nbCenters*10;
 for ind = 1:numel(events.ts)
   while (events.ts(ind) > labels{2}(whichExampleItIs))
     if (signatures(whichExampleItIs - nb_empty_sig, 2) == 0)
@@ -32,8 +34,4 @@ if signatures(whichExampleItIs - nb_empty_sig, 1) == 0
     signatures(whichExampleItIs - nb_empty_sig, 2);
     signatures(whichExampleItIs - nb_empty_sig, 1) = labels{3}(whichExampleItIs);
 end
-
-% whichExampleItIs
-% nb_empty_sig
-
 signatures = signatures(1:whichExampleItIs-nb_empty_sig,:);
