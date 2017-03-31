@@ -1,7 +1,7 @@
 % Dictionary of events
 %
 % - For each event definition, there must be 4 lines formatted as is
-% First line : NameOfEventType NameOfFramework FrameworkEventId
+% First line : NameOfEventType NameOfFramework VersionOfFramework FrameworkEventId
 % Fields in quote and separated with commas, for instance : 'field1', 'field2', 'field3'
 % Type of fields in quote and separated with commas, for instance : 'unsigned', 'signed', 'float'
 % Size (bits) of fields, separated with commas, for instance : 32, 7, 126483
@@ -19,73 +19,74 @@
 %          2^16 microseconds ~ 65 milliseconds
 %          2^32 microseconds ~ 1 hour 11 minutes
 %          2^64 microseconds > 500000 years
-
+% NOTE 5 : If the events type is not supported by the lastest version of the framework
+%          you attach it to, just put VersionOfFramework = 0
 
 % Event 2D from kAER, identifier 0;
 % NOTE : original implementation in kAER have p as an unsigned int.
 % X and Y are coordinate of the pixels, p is its polarity, ON or OFF event
-Event2d kAER 0
+Event2d kAER 0.6 0
 'ts','x','y','p', ''
 'unsigned','unsigned','unsigned','boolean','unsigned'
 32, 9, 8, 1, 14
 
 % Event 2D SubPix from kAER, identifier 1;
-Event2dSubPix kAER 1
+Event2dSubPix kAER 0.6 1
 'ts','x','y','p', '', 'x_f', 'y_f'
 'unsigned','unsigned','unsigned','unsigned', 'unsigned', 'float', 'float'
 32, 9, 8, 1, 14, 32, 32
 
 % Event 2D Vec from kAER, identifier 2;
-Event2dVec kAER 2
+Event2dVec kAER 0.6 2
 'ts','x','y','p', '', 'vx', 'vy'
 'unsigned','unsigned','unsigned','unsigned', 'unsigned', 'float', 'float'
 32, 9, 8, 1, 14, 32, 32
 
 % Event 2D Ellipse from kAER, identifier 3;
-Event2dEllipse kAER 3
+Event2dEllipse kAER 0.6 3
 'ts','x','y','p', '', 'x_f', 'y_f', 'a', 'b', 'alpha'
 'unsigned','unsigned','unsigned','unsigned', 'unsigned', 'float', 'float', 'float', 'float', 'float'
 32, 9, 8, 1, 14, 32, 32, 32, 32, 32
 
 % Event 2D Gray from kAER, identifier 4;
-Event2dGray kAER 4
+Event2dGray kAER 0.6 4
 'ts','x','y','p', 'type', 'ts_start', 'gray'
 'unsigned','unsigned','unsigned','unsigned', 'unsigned', 'unsigned', 'float'
 32, 9, 8, 1, 14, 32, 32
 
 % Event Addr from kAER, identifier 5;
 % NOTE : This is an all-purpose event declaration, should be avoided
-EventAddr kAER 5
+EventAddr kAER 0.6 5
 'ts','addr'
 'unsigned','unsigned'
 32, 32
 
 % Event 1D, kAER style.
-Event1d kAER 42
+Event1d kAER 0.6 42
 'ts','level','pol'
 'unsigned','unsigned','unsigned'
 64, 32, 32
 
 % Event Hots2D, kAER style
-EventHots2d kAER 43
+EventHots2d kAER 0.6 43
 'ts','x','y','pol'
 'unsigned','unsigned','unsigned','unsigned'
 32, 9, 8, 15
 
-% ATIS events from EventStream 0.1
-ATIS_events EventStream 0
+% ATIS events from EventStream
+ATIS_events EventStream 0.1 0
 'timestamp','x','y','isThresholdCrossing','polarity'
 'unsigned','unsigned','unsigned','unsigned','unsigned'
 64, 9, 8, 1, 1
 
 % Asynchronous & Modular Display events from EventStream 0.1
-Asynchronous_and_Modular_Display_events EventStream 1
+Asynchronous_and_Modular_Display_events EventStream 0.1 1
 'timestamp','x', 'intensity', 'y', 'fpga_x','fpga_y'
 'unsigned','unsigned','unsigned','unsigned','unsigned','unsigned'
 64, 3, 5, 3, 4, 4
 
 % Color events from EventStream 0.1
-Color_events EventStream 2
+Color_events EventStream 0.1 2
 'timestamp', 'x', 'y', 'r', 'g', 'b'
 'unsigned','unsigned','unsigned','unsigned','unsigned','unsigned'
 64, 9, 8, 8, 8, 8
