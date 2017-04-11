@@ -1,4 +1,4 @@
-function [] = compute_generic_hots(path_data, params, events_train_hots, events_train, events_test)
+function [] = compute_generic_hots(params, events_train_hots, events_train, events_test)
 % generic_hots(path, params, events_train, events_test) perform hots for events
 % in events_test, training the centers with events_train.
 %
@@ -37,8 +37,8 @@ end
 %path_hots_generic = '../_build/app/test';
 path_hots_generic = '/home/vincent/idv/generichots/_build/app/test';
 
-if ~exist(path_data, 'dir')
-  mkdir(path_data)
+if ~exist(params.path_data, 'dir')
+  mkdir(params.path_data)
 end
 
 if nargin == 2
@@ -46,24 +46,24 @@ if nargin == 2
 else
   % write_label_data(label_train, fullfile(path_data, 'labels_train_classif.txt'));
   % write_label_data(label_test, fullfile(path_data, 'labels_test_classif.txt'));
-
-  file_ev_train_hots = fullfile(path_data, 'events_train_hots.dat');
-  file_ev_train = fullfile(path_data, 'events_train_classif.dat');
-  file_ev_test = fullfile(path_data, 'events_test_classif.dat');
+  params.eventsname = {'events_train_hots.dat', 'events_train_classif.dat', 'events_test_classif.dat'};
+  file_ev_train_hots = fullfile(params.path_data, params.eventsname{1});
+  file_ev_train = fullfile(params.path_data, params.eventsname{2});
+  file_ev_test = fullfile(params.path_data, params.eventsname{3});
   write_audio_data(events_train_hots, file_ev_train_hots);
   write_audio_data(events_train, file_ev_train);
   write_audio_data(events_test, file_ev_test);
 end
 
-command = ['cp -f ', fullfile(path_hots_generic, filename_hots), ' ', path_data];
+command = ['cp -f ', fullfile(path_hots_generic, filename_hots), ' ', params.path_data];
 system(command);
 
-filename_hotsparams = fullfile(path_data, 'params.hotsnetwork');
+filename_hotsparams = fullfile(params.path_data, 'params.hotsnetwork');
 write_hotsnetwork_file(params, filename_hotsparams);
 
 tic;
 fprintf('----     STARTING GENERIC HOTS     ----\n');
-generic_hots_main = fullfile(path_data, filename_hots);
+generic_hots_main = fullfile(params.path_data, filename_hots);
 command = [generic_hots_main, ' ', filename_hotsparams];
 system(command);
 fprintf('---- END OF GENERIC HOTS EXECUTION ----\nHots : ');

@@ -1,4 +1,4 @@
-function [varargout] = read_generichots_output(path_data, params)
+function [varargout] = read_generichots_output(params)
 
 % [centers] = read_generichots_output(path, params) return the centers.
 %
@@ -28,21 +28,21 @@ if nargout > 0
   centers = cell(1,params.nbLayers);
   if nargout > 1
   events = cell(1,params.nbLayers+1);
-  events(1) = {load_audio_data(fullfile(path_data, ['events_train_classif.dat']))};
+  events(1) = {load_audio_data(fullfile(params.path_data, ['events_train_classif.dat']))};
   end
   if nargout > 2
   events2 = cell(1,params.nbLayers+1);
-  events2(1) = {load_audio_data(fullfile(path_data, ['events_test_classif.dat']))};
+  events2(1) = {load_audio_data(fullfile(params.path_data, ['events_test_classif.dat']))};
   end
   for ind = 1:params.nbLayers
-    centers_file = fullfile(path_data, ['centersOfLayer', num2str(ind), '.txt']);
+    centers_file = fullfile(params.path_data, ['centersOfLayer', num2str(ind), '.txt']);
     centers(ind) = {read_centers(centers_file, params)};
     if nargout > 1
-      events_file = fullfile(path_data, ['events_train_classif_outputOfLayer', num2str(ind), '.dat']);
+      events_file = fullfile(params.path_data, ['events_train_classif_outputOfLayer', num2str(ind), '.dat']);
       events(ind+1) = {load_audio_data(events_file)};
     end
     if nargout > 2
-      events_file = fullfile(path_data, ['events_test_classif_outputOfLayer', num2str(ind), '.dat']);
+      events_file = fullfile(params.path_data, ['events_test_classif_outputOfLayer', num2str(ind), '.dat']);
       events2(ind+1) = {load_audio_data(events_file)};
     end
   end

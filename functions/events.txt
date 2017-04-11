@@ -25,6 +25,7 @@
 % Event 2D from kAER, identifier 0;
 % NOTE : original implementation in kAER have p as an unsigned int.
 % X and Y are coordinate of the pixels, p is its polarity, ON or OFF event
+
 Event2d kAER 0.6 0
 'ts','x','y','p', ''
 'unsigned','unsigned','unsigned','boolean','unsigned'

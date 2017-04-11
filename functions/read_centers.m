@@ -10,7 +10,7 @@ nbFeats = tmp(2);
 if nCenters == params.nbCenters(1)
     NPols = params.nbPols;
 else
-    NPols = params.nbCenters(find(nCenters==params.nbCenters)-1);
+    NPols = params.nbCenters(find(nCenters==params.nbCenters,1)-1);
 end
 radius = (nbFeats/NPols-1)/2;
 centers = zeros(nCenters, NPols, nbFeats/NPols);

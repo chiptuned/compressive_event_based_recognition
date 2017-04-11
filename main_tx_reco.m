@@ -2,12 +2,12 @@ clearvars;
 close all force;
 
 addpath('functions')
-addpath('/home/vincent/idv/generichots/matlab')
+%addpath('/home/vincent/idv/generichots/matlab')
 addpath('../libsvm/matlab')
 
 %% Variables initialization
 path_timit = '/home/vincent/idv/Cochlea/timit/timit/';
-curr_data_folder = 'hots_data';
+curr_data_folder = 'hots_data_apr3';
 path_data = fullfile(pwd, curr_data_folder);
 
 aff = 1;
@@ -21,7 +21,7 @@ ratio_classif_test_of_test_timit = 0.15;
 params.nbLayers = 2;
 params.nbCenters = [8, 16, 32, 64, 128];
 params.tau = [1000., 4000., 16000., 64000., 256000.];
-params.radius = [4, 8, 16, 32, 64];
+params.radius = [5, 15, 25, 35, 45];
 params.ksi = [2e-5, 4e-4, 4e-4, 4e-4, 4e-4];
 params.nPow = 3;
 params.nbDim = 1;
@@ -57,11 +57,14 @@ events_train.p = zeros(size(events_train.p));
 events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
-if launch_hots
-    compute_generichots(path_data, params, events_train_hots, events_train, events_test);
-end
-[centers, events, events2] = read_generichots_output(path_data, params);
+% if launch_hots
+%     compute_generichots(path_data, params, events_train_hots, events_train, events_test);
+% end
+% [centers, events, events2] = read_generichots_output(path_data, params);
+[centers, events] = compute_matlab_hots(params, events_train_hots, events_train, events_test);
+ceil(100*density_centers(centers))
 
+%% Affichages
 if aff
   occs = cell(1,params.nbLayers);
 
@@ -101,7 +104,7 @@ if aff
     plot_events(events{ind+1});
 
     sbp2 = subplot(312);
-    plot_events_labelcolor(events{ind+1}, label_train)
+    plot_events_labelcolor(events{ind+1}, label_train, classes_phon_1)
 
     sbp3 = subplot(313);
     events_zero.ts = 0:500:label_train{2}(end);
@@ -117,6 +120,7 @@ end
 disp('phase 1 terminee')
 pause
 
+%% Reco
 for type_classes_label = [2,1,3,0]
 
     [label_train, classes_phon_1] = change_class_labels(label_train_phon, type_classes_label);

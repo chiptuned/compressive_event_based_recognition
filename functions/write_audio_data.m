@@ -21,10 +21,14 @@ lvlshift=0; % bits to shift x to right
 channelshift=16; % bits to shift y to right
 polshift=20; % bits to shift p to right
 
+if isfield(ev, 'channel')
 addr = bitshift(ev.level,lvlshift) + ...
   bitshift(ev.channel,channelshift) + ...
   bitshift(ev.p,polshift);
-
+else
+  addr = bitshift(ev.level,lvlshift) + ...
+    bitshift(ev.p,polshift);
+end
 list_ts_addr = [ev.ts+audio_offset, addr]';
 fwrite(f,list_ts_addr,'uint32');
 fclose(f);

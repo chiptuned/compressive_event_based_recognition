@@ -16,7 +16,7 @@ nb_pols = numel(unique(events.p));
 list_pol = unique(events.p);
 
 if ~exist('colors', 'var')
-  colors = distinguishable_colors(nb_pols);
+    colors = distinguishable_colors(nb_pols);
 end
 
 

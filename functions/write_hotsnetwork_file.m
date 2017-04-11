@@ -35,7 +35,18 @@ for ind = 1:params.nbLayers
     ' ', num2str(params.radius(ind))];
   fprintf(fid,'%s', layer);
 end
-
 fprintf(fid,'\n');
+
+name_files = [];
+for ind = 1:3
+  name_files = [name_files ,params.eventsname{ind}, ' '];
+end
+fprintf(fid,'%s\n', name_files);
+name_files = [];
+for ind = 1:params.nbLayers
+  name_files = [name_files , 'centersOfLayer',num2str(ind),'.txt '];
+end
+fprintf(fid,'%s\n', name_files);
+
 fclose(fid);
 status = 1;
