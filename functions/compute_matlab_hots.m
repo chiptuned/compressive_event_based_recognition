@@ -40,12 +40,9 @@ for layer = 1:params.nbLayers
 end
 end
 
-
-
-
-
 function [new_events, centers] = compute_hots_layer_processing_untitled(events, centers, params)
-  debug_mode = 0;
+
+debug_mode = 1;
 
 tstart = tic;
 new_events = events;
@@ -64,12 +61,12 @@ if learning
   centers = [];%zeros(nbCenters, nbPols, nbFeats_pol);
   occ_centers = [];
   thresh_nb_pixel_relevant_surface = 3;
-  thresh_similarity = 0.01;
-  thresh_variance = 0.04;
-  thresh_occ = 1000;
+  thresh_relevant_pixel_surface = 5e-2; % exp(-3tau/tau) = exp(-3) = 5e-2
+  thresh_similarity = 0;
+  thresh_variance = 1;
+  thresh_occ = 1e15;
   nb_discarded_events = 0;
   fprintf('Computing a learning layer...\n');
-  figure;
 else
   fprintf('Propagating events..\n');
 end
@@ -105,7 +102,11 @@ for idx_ev = 1:numel(events.ts)
   %% Computing distances
   for ind = 1:size(centers,1)
     % euclidean
-    dists(ind) = sqrt(sum(abs(currCtx(:)'-centers(ind,:).^2)));
+    %dists(ind) = sqrt(sum(abs(currCtx(:)'-centers(ind,:).^2)));
+    % bhattacharrya
+    a = currCtx(:);
+    b = centers(ind,:)';
+    dists(ind) = -log(sum(sqrt(a.*b/(sum(a)*sum(b)))));
   end
   [~, nc] = min(dists); %nc : neareset center
   % On peut analyser dists(nc) (et a fortior dists) afin de quantifier la
@@ -135,7 +136,7 @@ for idx_ev = 1:numel(events.ts)
       end
     else
       dists_norm = dists/max(dists);
-      if numel(find(currCtx(:))) >= thresh_nb_pixel_relevant_surface
+      if numel(find(currCtx(:))>thresh_relevant_pixel_surface) >= thresh_nb_pixel_relevant_surface
         cond1 = dists(nc)/numel(currCtx) < thresh_similarity;
         cond2 = var(dists_norm) > thresh_variance;
         cond3 = occ_centers(nc) < thresh_occ;
@@ -145,10 +146,14 @@ for idx_ev = 1:numel(events.ts)
             dists_norm
           end
           coeff = dists_norm(nc);
-          centers(nc, :) = (1-coeff).*centers(nc,:)+coeff.*currCtx(:)';
+          centers(nc,:) = (1-coeff).*centers(nc,:)+coeff.*currCtx(:)';
           occ_centers(nc) = occ_centers(nc) + 1;
           if debug_mode
             fprintf('center updated\n')
+          end
+          thresh_similarity = thresh_similarity - dists(nc)/100;
+          if thresh_similarity < 0
+            thresh_similarity = 0;
           end
         else
           if debug_mode
@@ -162,6 +167,14 @@ for idx_ev = 1:numel(events.ts)
               fprintf('occs %f !< thr_occ %f\n', occ_centers(nc), thresh_occ);
             end
           end
+          thresh_similarity = thresh_similarity + dists(nc)/10;
+          thresh_variance = thresh_variance/2;
+          if thresh_similarity > 1
+            thresh_similarity = 1;
+          elseif thresh_variance = 0
+            thresh_variance = 1;
+          end
+
           centers = [centers; shiftdim(currCtx, -1)];
           occ_centers = [occ_centers, 1];
           if debug_mode
@@ -169,13 +182,17 @@ for idx_ev = 1:numel(events.ts)
           end
         end
       else
-        nb_discarded_events = nb_discarded_events+1;
+        nb_discarded_events = nb_discarded_events+1
       end
       if size(centers,1) > 2*params.nbCenters
         if debug_mode
           warning('too much centers, merging.')
         end
+        thresh_variance = thresh_variance * 2^params.nbCenters;
         [centers, occ_centers] = merge_centers(centers, occ_centers, params.nbCenters);
+      end
+      if debug_mode
+        %pause(0.001);
       end
     end
   else
@@ -184,7 +201,12 @@ for idx_ev = 1:numel(events.ts)
   end
 end
 if size(centers,1) < params.nbCenters
-  error('wooot')
+  warning(['Made ', num2str(size(centers,1)), ' centers, less than the ', ...
+    num2str(params.nbCenters), ' expected.'])
+    nb_centers_to_add = (params.nbCenters-size(centers,1));
+  for ind = 1:nb_centers_to_add
+    centers = [centers; centers(end,:,:)];
+  end
 end
 if learning
 [centers, occ_centers] = merge_centers(centers, occ_centers, params.nbCenters);

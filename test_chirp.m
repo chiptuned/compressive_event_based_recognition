@@ -37,15 +37,15 @@ params.viewer = 0;
 params.viewer_port = 3334;
 params.viewer_refresh_seconds = 6;
 params.nbLayers = 3;
-params.nbCenters = [4, 8, 16, 32, 64];
+params.nbCenters = [16, 32, 64, 32, 64];
 params.tau = [1000., 4000., 12000., 64000., 256000.];
 params.radius = [5, 15, 25, 35, 45];
 params.nbDim = 1;
 params.nbChannels = nb_levels_crossing;
 
-events_train_hots.p = zeros(size(events_train_hots.p));
-events_train.p = zeros(size(events_train.p));
-events_test.p = zeros(size(events_test.p));
+% events_train_hots.p = zeros(size(events_train_hots.p));
+% events_train.p = zeros(size(events_train.p));
+% events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
 % compute_generichots(params, events_train_hots, events_train, events_test);
@@ -83,5 +83,6 @@ if aff
   for ind = 1:params.nbLayers
     occs(ind) = {occurancies_centers(centers{ind}, events{ind+1})};
     plot_centers(centers{ind}, occs{ind}, 8);
+    plot_centers_temporal(centers{ind}, occs{ind}, params.tau(ind));
   end
 end
