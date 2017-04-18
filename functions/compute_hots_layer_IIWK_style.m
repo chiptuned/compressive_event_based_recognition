@@ -1,4 +1,4 @@
-function [new_events, centers] = compute_hots_layer_processing_IIWK_euclidean_dist(events, centers, params)
+function [new_events, centers] = compute_hots_layer_IIWK_style(events, centers, params)
 tstart = tic; %%%
 ksi = 2e-4;
 nPow = 3;
@@ -44,8 +44,8 @@ for idx_ev = 1:numel(events.ts)
 
   %% Computing distances
   for ind = 1:size(centers,1)
-    % euclidean
-    dists(ind) = sqrt(sum(abs(currCtx(:)'-centers(ind,:).^2)));
+    % cityblock
+    dists(ind) = sum(abs(currCtx(:)'-centers(ind,:)));
   end
   [~, nc] = min(dists); %nc : neareset center
   % On peut analyser dists(nc) (et a fortior dists) afin de quantifier la
@@ -58,10 +58,10 @@ for idx_ev = 1:numel(events.ts)
     %% IIWKMEANS, faut trouver mieux
     coeff = ksi.*((nPow+1).*(dists(nc).^(nPow-1))+...
       nPow.*(dists(nc).^(nPow-2)).*(sum(dists)-dists(nc)));
-    if ((coeff >= 1) || (coeff <= 0))
-      % coeff = 1
-      dists
-      error (['coeff is ', num2str(coeff)]);
+    if coeff > 1
+      coeff = 1;
+    elseif coeff < 0
+      coeff = 0;
     end
     % centers(nc,:)
     % currCtx(:)'

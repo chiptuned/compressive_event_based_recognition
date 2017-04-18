@@ -11,11 +11,12 @@ fs = 1e4;
 t_train_hots = 0:1/fs:5;
 t_train = 0:1/fs:10;
 t_test = 0:1/fs:30;
-data_train_hots = chirp(t_train_hots,1,10,100);
+max_freq = 100;
+data_train_hots = chirp(t_train_hots,1,5,max_freq);
 data_train_hots = uint16(floor((data_train_hots/max(abs(data_train_hots))+1)*2^15));
-data_train = chirp(t_train,1,30,100);
+data_train = chirp(t_train,1,10,max_freq);
 data_train = uint16(floor((data_train/max(abs(data_train))+1)*2^15));
-data_test = chirp(t_test,1,60,100);
+data_test = chirp(t_test,1,30,max_freq);
 data_test = uint16(floor((data_test/max(abs(data_test))+1)*2^15));
 events_train_hots = levelcrossing( data_train_hots, fs, nb_levels_crossing );
 events_train = levelcrossing( data_train, fs, nb_levels_crossing );
@@ -32,12 +33,18 @@ sbp3 = subplot(313);
 plot_events(events_test);
 linkaxes([sbp1, sbp2, sbp3]);
 
+figure;
+spectrogram(chirp(t_train_hots,1,5,max_freq),8192,8000,8192,fs,'yaxis')
+ylim([0, max_freq/1000])
+pause
+
+
 params.path_data = path_data;
 params.viewer = 0;
 params.viewer_port = 3334;
 params.viewer_refresh_seconds = 6;
 params.nbLayers = 2;
-params.nbCenters = [8, 16, 64, 32, 64];
+params.nbCenters = [32, 16, 64, 32, 64];
 params.tau = [1000., 100000., 16000., 64000., 256000.];
 params.radius = [5, 15, 25, 35, 45];
 params.nbDim = 1;
