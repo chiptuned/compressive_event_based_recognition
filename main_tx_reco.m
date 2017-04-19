@@ -19,8 +19,8 @@ ratio_classif_learning_of_train_timit = 0.03;
 ratio_classif_test_of_test_timit = 0.15;
 
 params.path_data = path_data;
-params.nbLayers = 2;
-params.nbCenters = [8, 16, 32, 64, 128];
+params.nbLayers = 3;
+params.nbCenters = [16, 32, 64, 128, 256];
 params.tau = [1000., 4000., 16000., 64000., 256000.];
 params.radius = [5, 15, 25, 35, 45];
 params.ksi = [2e-5, 4e-4, 4e-4, 4e-4, 4e-4];
@@ -92,14 +92,14 @@ if aff
   linkaxes(handle_subp);
   axis([5.15e7 5.45e7 0 49])
   pause
-  
+
   for ind = 1:params.nbLayers
     occs(ind) = {occurancies_centers(centers{ind}, events{ind+1})};
     plot_centers(centers{ind}, occs{ind}, 8);
 %       plot_centers_temporal(centers{ind}, occs{ind}, params.tau(ind), 4);
 %       figure;
 %       plot_events(events{ind+1});
-    
+
     figure;
     sbp1 = subplot(311);
     plot_events(events{ind+1});
@@ -129,9 +129,7 @@ for type_classes_label = [2,1,3,0]
 
     all_sigs_train = compute_all_signatures1D_from_events(events{params.nbLayers+1}, label_train, ...
       params.nbCenters(params.nbLayers));
-    all_sigs_train(1,:)
-    pause
-  
+
     all_sigs_test = compute_all_signatures1D_from_events(events2{params.nbLayers+1}, label_test, ...
       params.nbCenters(params.nbLayers));
 
@@ -143,12 +141,12 @@ for type_classes_label = [2,1,3,0]
     reco_rate_metasigs = compute_reco_using_metasigs(all_sigs_train, all_sigs_test);
     reco_rate_euclidean = compute_reco_using_kppv(all_sigs_train, all_sigs_test, max_k, 'euclidean');
     reco_rate_bhattacharrya = compute_reco_using_kppv(all_sigs_train, all_sigs_test, max_k, 'bhattacharrya');
-    
+
     [max_reco_rate_euclidean, k_max_reco_rate_euclidean] = max(reco_rate_euclidean);
     [max_reco_rate_bhattacharrya, k_max_reco_rate_bhattacharrya] = max(reco_rate_bhattacharrya);
     reco_rate_mlp = compute_reco_using_mlp(all_sigs_train, all_sigs_test);
     reco_rate_svm = compute_reco_using_svm(all_sigs_train, all_sigs_test);
-    
+
     switch type_classes_label
         case 0
             type = 'TIMIT phonemas, 61 classes';
@@ -161,7 +159,7 @@ for type_classes_label = [2,1,3,0]
         otherwise
         error('wtf type_classes_label');
     end
-    
+
     fprintf('-> Type %s :\n', type);
     fprintf('Recognition rate with meta signatures : %d%%\n', floor(reco_rate_metasigs*100));
     fprintf('Recognition rate with kppv (euclidean) : %d%% with k=%d\n', ...
@@ -189,21 +187,21 @@ end
 % Recognition rate with kppv (bhattacharrya) : 62% with k=22
 % Recognition rate with MLP (trainscg, crossentropy, [100,1000] neurons in hidden layers : 68%
 % Recognition rate with SVM (C-SVC, default parameters, no shrinking): 61%
-% 
+%
 % -> Type Reynolds & Antoniou (2003), 7 classes :
 % Recognition rate with meta signatures : 25%
 % Recognition rate with kppv (euclidean) : 37% with k=47
 % Recognition rate with kppv (bhattacharrya) : 29% with k=16
 % Recognition rate with MLP (trainscg, crossentropy, [100,1000] neurons in hidden layers : 42%
 % Recognition rate with SVM (C-SVC, default parameters, no shrinking): 33%
-% 
+%
 % -> Type Lee & Hon (1989), 36 classes :
 % Recognition rate with meta signatures : 2%
 % Recognition rate with kppv (euclidean) : 19% with k=4
 % Recognition rate with kppv (bhattacharrya) : 17% with k=12
 % Recognition rate with MLP (trainscg, crossentropy, [100,1000] neurons in hidden layers : 31%
 % Recognition rate with SVM (C-SVC, default parameters, no shrinking): 21%
-% 
+%
 % -> Type TIMIT phonemas, 61 classes :
 % Recognition rate with meta signatures : 1%
 % Recognition rate with kppv (euclidean) : 3% with k=49
