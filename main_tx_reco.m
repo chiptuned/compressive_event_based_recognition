@@ -18,6 +18,7 @@ ratio_hots_learning_of_train_timit = 0.01;
 ratio_classif_learning_of_train_timit = 0.03;
 ratio_classif_test_of_test_timit = 0.15;
 
+params.path_data = path_data;
 params.nbLayers = 2;
 params.nbCenters = [8, 16, 32, 64, 128];
 params.tau = [1000., 4000., 16000., 64000., 256000.];
@@ -57,12 +58,12 @@ events_train.p = zeros(size(events_train.p));
 events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
-% if launch_hots
-%     compute_generichots(path_data, params, events_train_hots, events_train, events_test);
-% end
-% [centers, events, events2] = read_generichots_output(path_data, params);
-[centers, events] = compute_matlab_hots(params, events_train_hots, events_train, events_test);
-ceil(100*density_centers(centers))
+if launch_hots
+    compute_generic_hots(params, events_train_hots, events_train, events_test);
+end
+[centers, events, events2] = read_generichots_output(params);
+% [centers, events] = compute_matlab_hots(params, events_train_hots, events_train, events_test);
+% ceil(100*density_centers(centers))
 
 %% Affichages
 if aff
@@ -128,7 +129,9 @@ for type_classes_label = [2,1,3,0]
 
     all_sigs_train = compute_all_signatures1D_from_events(events{params.nbLayers+1}, label_train, ...
       params.nbCenters(params.nbLayers));
-
+    all_sigs_train(1,:)
+    pause
+  
     all_sigs_test = compute_all_signatures1D_from_events(events2{params.nbLayers+1}, label_test, ...
       params.nbCenters(params.nbLayers));
 

@@ -1,4 +1,7 @@
 function [reco_rate_mlp] = compute_reco_using_mlp(all_sigs_train, all_sigs_test)
+% sigs are nLabels * nbCenters+2
+% sigs(:,1) are their class (integer)
+% sigs(:,2) are the number of occurancies of each centers;
 
 classes = unique(all_sigs_train(:,1));
 nb_classes = numel(classes);
