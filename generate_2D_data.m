@@ -1,13 +1,13 @@
 close all force;
 clearvars;
 
-ksi_IIWK = 0.01;
+ksi_IIWK = 2;
 nPow_IIWK = 3;
-n_events_standard_clustering = 10000;
+n_events_standard_clustering = 20000;
 
 % 9171 4983 1682 5634 9057 8541 8785
 seed = randi(10000,1);
-rng(9171)
+rng(4983)
 nb_groups_to_find = randi(10,1);
 covs = rand([2, 2, nb_groups_to_find])/2;
 data = [];
@@ -73,7 +73,7 @@ for ind = 1:numel(data(:,1))
       'MarkerEdgeColor', colors(data(ind,3),:), ...
       'MarkerSize', 25);
   end
-  pause;
+  drawnow;
   if ind <= N_standard
     centers_standard(ind,:) = data(ind,1:2);
     centers_nb_assign(ind) = centers_nb_assign(ind)+1;
@@ -86,8 +86,10 @@ for ind = 1:numel(data(:,1))
     beta = sum(centers_standard(idx_min,:).*data(ind,1:2))/ ...
     sqrt(sum(centers_standard(idx_min,:))^2*sum(data(ind,1:2))^2)
     
+%     centers_standard(idx_min,:) = centers_standard(idx_min,:) + ...
+%       alpha.*(data(ind,1:2)-beta.*(centers_standard(idx_min,:)))
     centers_standard(idx_min,:) = centers_standard(idx_min,:) + ...
-      alpha.*(data(ind,1:2)-beta.*(centers_standard(idx_min,:)))
+        alpha.*(data(ind,1:2)-beta.*centers_standard(idx_min,:))
     centers_nb_assign(idx_min) = centers_nb_assign(idx_min)+1;
   end
   dists_battacharrya = zeros(N_IIWK,1);
