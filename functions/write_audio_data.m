@@ -29,7 +29,11 @@ else
   addr = bitshift(ev.level,lvlshift) + ...
     bitshift(ev.p,polshift);
 end
-list_ts_addr = [ev.ts+audio_offset, addr]';
-fwrite(f,list_ts_addr,'uint32');
+%list_ts_addr = [floor((ev.ts+audio_offset)/(2^32)), mod((ev.ts+audio_offset),2^32), addr]';
+%fwrite(f,list_ts_addr,'uint32');
+for ind = 1:numel(ev.ts)
+  fwrite(f,ev.ts(ind)+audio_offset,'uint64');
+  fwrite(f,addr(ind),'uint32');
+end
 fclose(f);
 last_event_ts = ev.ts(end)+audio_offset;

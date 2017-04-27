@@ -8,7 +8,7 @@ function td_data = load_audio_data(filename)
 % td_data is a structure containing the fields ts and addr
 %
 
-ev = load_addr_data(filename);
+ev = load_addr_data_64bit_ts(filename);
 td_data = convert_addr_to_audio(ev);
 end
 
