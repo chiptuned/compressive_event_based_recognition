@@ -1,4 +1,4 @@
-function [] = create_events_from_timit_database(path_timit, ratios, nb_levels)
+function [] = create_events_from_timit_database(path_timit, ratios, nb_levels, mode_event)
 % INPUT : path_timit a string path to the timit database
 % INPUT : ratios, a 3*1 vector for the ratios of hots_learning, sig_learning and
 %   sig_test data to make events with. hots_learning and sig_learning are ratios
@@ -98,7 +98,7 @@ for ind = 1:total_files_to_event
   end
 
   idx_file = idx_files_to_event(ind);
-  [events, fe] = convert_timit_to_event([full_filenames{idx_file}, '.wav'], nb_levels, 'cochlea');
+  [events, fe] = convert_timit_to_event([full_filenames{idx_file}, '.wav'], nb_levels, mode_event);
   labels = load_labels([full_filenames{idx_file}, '.phn'], fe);
 
   labels{1}(1) = 0;
