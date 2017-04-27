@@ -32,10 +32,10 @@ for layer = 1:params.nbLayers
     end
 
     new_params.learning = true;
-    [~, new_centers] = compute_hots_layer_IIWK_style(events_train_hots, [], new_params);
+    [~, new_centers] = compute_hots_layer_offline(events_train_hots, [], new_params);
     new_params.learning = false;
-    [new_events, ~] = compute_hots_layer_IIWK_style(events_train_hots, new_centers, new_params);
+    [new_events, ~] = compute_hots_layer_offline(events_train_hots, new_centers, new_params);
     events_train_hots = new_events;
-    [out_events{layer+1}, out_centers{layer}] = compute_hots_layer_IIWK_style(events_train, new_centers, new_params);
+    [out_events{layer+1}, out_centers{layer}] = compute_hots_layer_offline(events_train, new_centers, new_params);
 end
 end
