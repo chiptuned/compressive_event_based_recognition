@@ -1,3 +1,4 @@
+
 function [] = compute_generic_hots(params, events_train_hots, events_train, events_test)
 % generic_hots(path, params, events_train, events_test) perform hots for events
 % in events_test, training the centers with events_train.
@@ -43,6 +44,7 @@ end
 
 if nargin == 2
   % Check if events_test, events_train, label_train, label_test exist
+  % not compatible with field research (first lines), to know if its 1D or 2D
 else
   % write_label_data(label_train, fullfile(path_data, 'labels_train_classif.txt'));
   % write_label_data(label_test, fullfile(path_data, 'labels_test_classif.txt'));

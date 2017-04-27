@@ -31,16 +31,16 @@ if center_version == 1
 elseif center_version == 2
 
   splittedstr = strsplit(header,'generated ');
-  date = splittedstr{2}
+  date = splittedstr{2};
   splittedstr = strsplit(fgetl(fid),'Event files used : ');
-  event_file_used = splittedstr{2}
+  event_file_used = splittedstr{2};
   fgetl(fid);
   fgetl(fid);
   tmp = fgetl(fid);
   tmp = str2num(tmp(2:end));
-  layer_of_this_file = tmp(1)
-  n_dim_events = tmp(2)
-  max_dims_events = tmp(3)
+  layer_of_this_file = tmp(1);
+  n_dim_events = tmp(2);
+  max_dims_events = tmp(3);
   fgetl(fid);
 
   nPols = zeros(1,layer_of_this_file);

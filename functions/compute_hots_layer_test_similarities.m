@@ -208,6 +208,7 @@ if size(centers,1) < params.nbCenters
     nb_centers_to_add = (params.nbCenters-size(centers,1));
   for ind = 1:nb_centers_to_add
     centers = [centers; centers(end,:,:)];
+
   end
 end
 if learning
