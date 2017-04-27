@@ -7,22 +7,23 @@ addpath('../libsvm/matlab')
 
 %% Variables initialization
 path_timit = '/home/vincent/idv/Cochlea/timit/timit/';
-curr_data_folder = 'hots_data_apr3';
+curr_data_folder = 'hots_data';
 path_data = fullfile(pwd, curr_data_folder);
 
-aff = 1;
-create_events = 0;
+aff = 0;
+create_events = 1;
+mode_event_generation = 'spikegram_jittered';
 launch_hots = 1;
 nb_levels_crossing = 50;
-ratio_hots_learning_of_train_timit = 0.01;
-ratio_classif_learning_of_train_timit = 0.03;
-ratio_classif_test_of_test_timit = 0.15;
+ratio_hots_learning_of_train_timit = 0.33;
+ratio_classif_learning_of_train_timit = 0.67;
+ratio_classif_test_of_test_timit = 1;
 
 params.path_data = path_data;
-params.nbLayers = 3;
-params.nbCenters = [16, 32, 64, 128, 256];
-params.tau = [1000., 4000., 16000., 64000., 256000.];
-params.radius = [5, 15, 25, 35, 45];
+params.nbLayers = 2;
+params.nbCenters = [8, 32, 128, 32, 256];
+params.tau = [10000., 50000., 250000., 640000., 256000.];
+params.radius = [5, 10, 15, 25, 35];
 params.ksi = [2e-5, 4e-4, 4e-4, 4e-4, 4e-4];
 params.nPow = 3;
 params.nbDim = 1;
@@ -32,7 +33,7 @@ params.typeCenters = 2;
 if create_events
   ratios = [ratio_hots_learning_of_train_timit, ratio_classif_learning_of_train_timit, ...
     ratio_classif_test_of_test_timit];
-  create_events_from_timit_database(path_timit, ratios, nb_levels_crossing)
+  create_events_from_timit_database(path_timit, ratios, nb_levels_crossing, mode_event_generation)
 end
 
 file_ev_train_hots = [path_timit, 'train_hots.dat'];
@@ -59,11 +60,20 @@ events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
 if launch_hots
-    compute_generic_hots(params, events_train_hots, events_train, events_test);
+%   eventsname = {'events_train_hots.dat', 'events_train_classif.dat', 'events_test_classif.dat'};
+%   gen_file_ev_train_hots = fullfile(params.path_data, eventsname{1});
+%   gen_file_ev_train = fullfile(params.path_data, eventsname{2});
+%   gen_file_ev_test = fullfile(params.path_data, eventsname{3});
+%   system(['cp -f ', file_ev_train_hots, ' ', gen_file_ev_train_hots]);
+%   system(['cp -f ', file_ev_train, ' ', gen_file_ev_train]);
+%   system(['cp -f ', file_ev_test, ' ', gen_file_ev_test]);
+%   compute_generic_hots(params);
+  % ^ those remplace this one, slower
+  compute_generic_hots(params, events_train_hots, events_train, events_test);
 end
 [centers, events, events2] = read_generichots_output(params);
 % [centers, events] = compute_matlab_hots(params, events_train_hots, events_train, events_test);
-% ceil(100*density_centers(centers))
+ceil(100*density_centers(centers))
 
 %% Affichages
 if aff
@@ -91,7 +101,6 @@ if aff
   end
   linkaxes(handle_subp);
   axis([5.15e7 5.45e7 0 49])
-  pause
 
   for ind = 1:params.nbLayers
     occs(ind) = {occurancies_centers(centers{ind}, events{ind+1})};
@@ -119,14 +128,21 @@ if aff
 end
 
 disp('phase 1 terminee')
-pause
-
 %% Reco
 for type_classes_label = [2,1,3,0]
 
     [label_train, classes_phon_1] = change_class_labels(label_train_phon, type_classes_label);
     [label_test] = change_class_labels(label_test_phon, type_classes_label);
-
+%     label_train
+%     [label_train{1}(end-5:end), label_train{2}(end-5:end), label_train{3}(end-5:end)]
+%     label_test
+%     [label_test{1}(end-5:end), label_test{2}(end-5:end), label_test{3}(end-5:end)]
+%     for ind = 1:params.nbLayers+1
+%       events{ind}
+%       events2{ind}
+%       [events{ind}.ts(end-5:end), events{ind}.level(end-5:end)]
+%       [events2{ind}.ts(end-5:end), events2{ind}.level(end-5:end)]
+%     end
     all_sigs_train = compute_all_signatures1D_from_events(events{params.nbLayers+1}, label_train, ...
       params.nbCenters(params.nbLayers));
 
