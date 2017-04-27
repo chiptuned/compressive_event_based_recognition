@@ -2,7 +2,7 @@ clearvars;
 close all force;
 
 addpath('functions')
-curr_data_folder = 'hots_data_chirp_testSUPERCENTERS';
+curr_data_folder = 'hots_data_chirp_test';
 path_data = fullfile(pwd, curr_data_folder);
 
 aff = 1;
@@ -22,37 +22,16 @@ events_train_hots = levelcrossing( data_train_hots, fs, nb_levels_crossing );
 events_train = levelcrossing( data_train, fs, nb_levels_crossing );
 events_test = levelcrossing( data_test, fs, nb_levels_crossing );
 
-figure;
-plot(t_train_hots, data_train_hots, '.')
-figure;
-sbp1 = subplot(311);
-plot_events(events_train_hots);
-sbp2 = subplot(312);
-plot_events(events_train);
-sbp3 = subplot(313);
-plot_events(events_test);
-linkaxes([sbp1, sbp2, sbp3]);
-
-figure;
-spectrogram(chirp(t_train_hots,1,5,max_freq),8192,8000,8192,fs,'yaxis')
-ylim([0, max_freq/1000])
-pause
-
-
 params.path_data = path_data;
 params.viewer = 0;
 params.viewer_port = 3334;
 params.viewer_refresh_seconds = 6;
-params.nbLayers = 2;
-params.nbCenters = [32, 16, 64, 32, 64];
-params.tau = [1000., 100000., 16000., 64000., 256000.];
-params.radius = [5, 15, 25, 35, 45];
+params.nbLayers = 3;
+params.nbCenters = 4*[4, 8, 16, 32, 64];
+params.tau = [1000., 4000., 16000., 64000., 256000.];
+params.radius = [5, 35, 25, 35, 45];
 params.nbDim = 1;
 params.nbChannels = nb_levels_crossing;
-
-% events_train_hots.p = zeros(size(events_train_hots.p));
-% events_train.p = zeros(size(events_train.p));
-% events_test.p = zeros(size(events_test.p));
 params.nbPols = numel(unique(events_train_hots.p));
 
 % compute_generichots(params, events_train_hots, events_train, events_test);
