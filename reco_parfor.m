@@ -50,7 +50,7 @@ centers_parfor = [2,3,4,5,6,7,8,9,10];
 taus_parfor = [500, 1000, 2000, 4000, 8000];
 radius_parfor = [3,4,5,6,7,8,9,10];
 
-all_results = cell(2,numel(centers_parfor)*numel(taus_parfor)*numel(radius_parfor));
+all_results = cell(numel(centers_parfor)*numel(taus_parfor)*numel(radius_parfor), 2);
 
 for ind1 = 1:numel(centers_parfor)
   for ind2 = 1:numel(taus_parfor)
@@ -72,7 +72,7 @@ for ind1 = 1:numel(centers_parfor)
 end
 
 classes_label = [2,1,3,0];
-parfor idx_settings = 1:size(settings,1)
+parfor idx_settings = 1:size(all_results,1)
   % train model
   compute_generic_hots(all_results(idx_settings,1), events_train_hots, events_train, events_test);
   [centers, events, events2] = read_generichots_output(all_results(idx_settings,1));
