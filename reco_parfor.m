@@ -43,64 +43,66 @@ type_classes_label = 0;
 events_train_hots.p = zeros(size(events_train_hots.p));
 events_train.p = zeros(size(events_train.p));
 events_test.p = zeros(size(events_test.p));
-params.nbPols = numel(unique(events_train_hots.p));
 
-curr_data_folder = 'hots_data';
-path_data = fullfile(pwd, curr_data_folder);
-params.path_data = path_data;
-params.nbLayers = 1;
-params.nbCenters = [8, 32, 128, 32, 256];
-params.tau = [10000., 50000., 250000., 640000., 256000.];
-params.radius = [5, 10, 15, 25, 35];
-params.nbDim = 1;
-params.nbChannels = nb_levels_crossing;
+nLayers_parfor = 5;
+centers_parfor = [2,3,4,5,6,7,8,9,10];
+taus_parfor = [500, 1000, 2000, 4000, 8000];
+radius_parfor = [3,4,5,6,7,8,9,10];
 
-% train model
-compute_generic_hots(params, events_train_hots, events_train, events_test);
-[centers, events, events2] = read_generichots_output(params);
+all_results = cell(2,numel(centers_parfor)*numel(taus_parfor)*numel(radius_parfor));
 
-for layer = 1:
-for type_classes_label = [2,1,3,0]
-
-    [label_train, classes_phon_1] = change_class_labels(label_train_phon, type_classes_label);
-    [label_test] = change_class_labels(label_test_phon, type_classes_label);
-
-    all_sigs_train = compute_all_signatures1D_from_events(events{params.nbLayers+1}, label_train, ...
-      params.nbCenters(params.nbLayers));
-
-    all_sigs_test = compute_all_signatures1D_from_events(events2{params.nbLayers+1}, label_test, ...
-      params.nbCenters(params.nbLayers));
-
-    max_k = 50;
-    reco_rate_metasigs = compute_reco_using_metasigs(all_sigs_train, all_sigs_test);
-    reco_rate_euclidean = compute_reco_using_kppv(all_sigs_train, all_sigs_test, max_k, 'euclidean');
-    reco_rate_bhattacharrya = compute_reco_using_kppv(all_sigs_train, all_sigs_test, max_k, 'bhattacharrya');
-
-    [max_reco_rate_euclidean, k_max_reco_rate_euclidean] = max(reco_rate_euclidean);
-    [max_reco_rate_bhattacharrya, k_max_reco_rate_bhattacharrya] = max(reco_rate_bhattacharrya);
-    reco_rate_mlp = compute_reco_using_mlp(all_sigs_train, all_sigs_test);
-    reco_rate_svm = compute_reco_using_svm(all_sigs_train, all_sigs_test);
-
-    switch type_classes_label
-        case 0
-            type = 'TIMIT phonemas, 61 classes';
-        case 1
-            type = 'Reynolds & Antoniou (2003), 7 classes';
-        case 2
-            type = 'Halberstadt (1998), 3 classes';
-        case 3
-            type = 'Lee & Hon (1989), 36 classes';
-        otherwise
-        error('wtf type_classes_label');
+for ind1 = 1:numel(centers_parfor)
+  for ind2 = 1:numel(taus_parfor)
+    for ind3 = 1:numel(radius_parfor)
+      idx_settings = ind3+((ind2-1)+(ind1-1)*numel(taus_parfor))*numel(radius_parfor);
+      curr_data_folder = ['hots_data_', num2str(idx_settings)];
+      path_data = fullfile(pwd, curr_data_folder);
+      params.path_data = path_data;
+      params.nbLayers = 5;
+      params.nbCenters = settings(idx_settings,1).*2.^(0:4);
+      params.tau = settings(idx_settings,2).*2.^(0:4);
+      params.radius = settings(idx_settings,3).*2.^(0:4);
+      params.nbDim = 1;
+      params.nbChannels = nb_levels_crossing;
+      params.nbPols = numel(unique(events_train_hots.p));
+      all_results(idx_settings,1) = {params};
     end
+  end
+end
 
-    fprintf('-> Type %s :\n', type);
-    fprintf('Recognition rate with meta signatures : %d%%\n', floor(reco_rate_metasigs*100));
-    fprintf('Recognition rate with kppv (euclidean) : %d%% with k=%d\n', ...
-        floor(max_reco_rate_euclidean*100), k_max_reco_rate_euclidean);
-    fprintf('Recognition rate with kppv (bhattacharrya) : %d%% with k=%d\n', ...
-        floor(max_reco_rate_bhattacharrya*100), k_max_reco_rate_bhattacharrya);
-    fprintf(['Recognition rate with MLP (trainscg, crossentropy, '...
-        '[100,1000] neurons in hidden layers : %d%%\n'], floor(reco_rate_mlp*100));
-    fprintf(['Recognition rate with SVM (C-SVC, default parameters, no shrinking): %d%%\n\n'], floor(reco_rate_svm*100));
+classes_label = [2,1,3,0];
+parfor idx_settings = 1:size(settings,1)
+  % train model
+  compute_generic_hots(all_results(idx_settings,1), events_train_hots, events_train, events_test);
+  [centers, events, events2] = read_generichots_output(all_results(idx_settings,1));
+
+  % pour chaque layer, et chasses type de classes (nb de classes croissant)
+  % on a les 5 tests de reconnaissance
+  reco_rates = zeros(all_results(idx_settings,1).nbLayers, numel(classes_label), 5);
+
+  for layer = 1:all_results(idx_settings,1).nbLayers
+    for idx_classes_label = 1:numel(classes_label)
+
+        type_classes_label = classes_label(idx_classes_label);
+        [label_train, classes_phon_1] = change_class_labels(label_train_phon, type_classes_label);
+        [label_test] = change_class_labels(label_test_phon, type_classes_label);
+
+        all_sigs_train = compute_all_signatures1D_from_events(events{layer+1}, label_train, ...
+          all_results(idx_settings,1).nbCenters(layer));
+
+        all_sigs_test = compute_all_signatures1D_from_events(events2{layer+1}, label_test, ...
+          all_results(idx_settings,1).nbCenters(layer));
+
+        max_k = 50;
+        reco_rates(layer,idx_classes_label, 1) = compute_reco_using_metasigs(all_sigs_train, all_sigs_test);
+        reco_rate_euclidean = compute_reco_using_kppv(all_sigs_train, all_sigs_test, max_k, 'euclidean');
+        reco_rate_bhattacharrya = compute_reco_using_kppv(all_sigs_train, all_sigs_test, max_k, 'bhattacharrya');
+
+        reco_rates(layer,idx_classes_label, 2) = max(reco_rate_euclidean);
+        reco_rates(layer,idx_classes_label, 3) = max(reco_rate_bhattacharrya);
+        reco_rates(layer,idx_classes_label, 4) = compute_reco_using_mlp(all_sigs_train, all_sigs_test);
+        reco_rates(layer,idx_classes_label, 5) = compute_reco_using_svm(all_sigs_train, all_sigs_test);
+    end
+  end
+  results(2,idx_settings) = {reco_rates};
 end
