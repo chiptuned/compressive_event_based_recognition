@@ -70,8 +70,13 @@ for ind1 = 1:numel(centers_parfor)
     end
   end
 end
-
 classes_label = [2,1,3,0];
+
+N_workers = 72;
+myCluster=parcluster('local');
+myCluster.NumWorkers=N_workers;
+parpool(myCluster,N_workers)
+
 parfor idx_settings = 1:size(all_results,1)
   % train model
   compute_generic_hots(all_results{idx_settings,1}, events_train_hots, events_train, events_test);
