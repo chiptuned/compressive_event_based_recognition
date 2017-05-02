@@ -74,14 +74,14 @@ end
 classes_label = [2,1,3,0];
 parfor idx_settings = 1:size(all_results,1)
   % train model
-  compute_generic_hots(all_results(idx_settings,1), events_train_hots, events_train, events_test);
-  [centers, events, events2] = read_generichots_output(all_results(idx_settings,1));
+  compute_generic_hots(all_results{idx_settings,1}, events_train_hots, events_train, events_test);
+  [centers, events, events2] = read_generichots_output(all_results{idx_settings,1});
 
   % pour chaque layer, et chasses type de classes (nb de classes croissant)
   % on a les 5 tests de reconnaissance
-  reco_rates = zeros(all_results(idx_settings,1).nbLayers, numel(classes_label), 5);
+  reco_rates = zeros(all_results{idx_settings,1}.nbLayers, numel(classes_label), 5);
 
-  for layer = 1:all_results(idx_settings,1).nbLayers
+  for layer = 1:all_results{idx_settings,1}.nbLayers
     for idx_classes_label = 1:numel(classes_label)
 
         type_classes_label = classes_label(idx_classes_label);
@@ -89,10 +89,10 @@ parfor idx_settings = 1:size(all_results,1)
         [label_test] = change_class_labels(label_test_phon, type_classes_label);
 
         all_sigs_train = compute_all_signatures1D_from_events(events{layer+1}, label_train, ...
-          all_results(idx_settings,1).nbCenters(layer));
+          all_results{idx_settings,1}.nbCenters(layer));
 
         all_sigs_test = compute_all_signatures1D_from_events(events2{layer+1}, label_test, ...
-          all_results(idx_settings,1).nbCenters(layer));
+          all_results{idx_settings,1}.nbCenters(layer));
 
         max_k = 50;
         reco_rates(layer,idx_classes_label, 1) = compute_reco_using_metasigs(all_sigs_train, all_sigs_test);
