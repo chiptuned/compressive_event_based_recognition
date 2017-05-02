@@ -20,6 +20,7 @@ if create_events
   ratios = [ratio_hots_learning_of_train_timit, ratio_classif_learning_of_train_timit, ...
     ratio_classif_test_of_test_timit];
   create_events_from_timit_database(path_timit, ratios, nb_levels_crossing, mode_event_generation)
+  fprintf('Database created.\n');
 end
 
 file_ev_train_hots = [path_timit, 'train_hots.dat'];
@@ -59,9 +60,9 @@ for ind1 = 1:numel(centers_parfor)
       path_data = fullfile(pwd, curr_data_folder);
       params.path_data = path_data;
       params.nbLayers = 5;
-      params.nbCenters = settings(idx_settings,1).*2.^(0:4);
-      params.tau = settings(idx_settings,2).*2.^(0:4);
-      params.radius = settings(idx_settings,3).*2.^(0:4);
+      params.nbCenters = centers_parfor(ind1).*2.^(0:4);
+      params.tau = taus_parfor(ind2).*2.^(0:4);
+      params.radius = radius_parfor(ind3).*2.^(0:4);
       params.nbDim = 1;
       params.nbChannels = nb_levels_crossing;
       params.nbPols = numel(unique(events_train_hots.p));
