@@ -9,7 +9,7 @@ addpath('../libsvm/matlab')
 path_timit = '/home/vincent/idv/Cochlea/timit/timit/';
 
 aff = 1;
-create_events = 1;
+create_events = 0;
 mode_event_generation = 'spikegram_jittered';
 nb_levels_crossing = 50;
 ratio_hots_learning_of_train_timit = 0.33;
@@ -45,7 +45,7 @@ events_train_hots.p = zeros(size(events_train_hots.p));
 events_train.p = zeros(size(events_train.p));
 events_test.p = zeros(size(events_test.p));
 
-nLayers_parfor = 5;
+nLayers_parfor = 3;
 centers_parfor = [2,3,4,5,6,7,8,9,10];
 taus_parfor = [500, 1000, 2000, 4000, 8000];
 radius_parfor = [3,4,5,6,7,8,9,10];
@@ -59,7 +59,10 @@ for ind1 = 1:numel(centers_parfor)
       curr_data_folder = ['hots_data_', num2str(idx_settings)];
       path_data = fullfile(pwd, curr_data_folder);
       params.path_data = path_data;
-      params.nbLayers = 5;
+      params.viewer = 0;
+      params.viewer_port = 3333+idx_settings;
+      params.viewer_refresh_seconds = 6;
+      params.nbLayers = nLayers_parfor;
       params.nbCenters = centers_parfor(ind1).*2.^(0:4);
       params.tau = taus_parfor(ind2).*2.^(0:4);
       params.radius = radius_parfor(ind3).*2.^(0:4);

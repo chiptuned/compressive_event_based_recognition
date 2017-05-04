@@ -35,8 +35,7 @@ elseif isfield(events_train_hots,'y')
   filename_hots = 'hots2D';
 end
 
-%path_hots_generic = '../_build/app/test';
-path_hots_generic = '/home/vincent/idv/generichots/_build/app/test';
+path_hots_generic = '../generichots/_build/app/test';
 
 if ~exist(params.path_data, 'dir')
   mkdir(params.path_data)
