@@ -35,19 +35,20 @@ elseif isfield(events_train_hots,'y')
   filename_hots = 'hots2D';
 end
 
-path_hots_generic = '../generichots/_build/app/test';
+path_hots_generic = '/home/vincent/idv/generichots/_build/app/test';
 
 if ~exist(params.path_data, 'dir')
   mkdir(params.path_data)
 end
 
+params.eventsname = {'events_train_hots.dat', 'events_train_classif.dat', 'events_test_classif.dat'};
+
 if nargin == 2
   % Check if events_test, events_train, label_train, label_test exist
   % not compatible with field research (first lines), to know if its 1D or 2D
-else
+elseif isfield(events_train_hots, 'level')
   % write_label_data(label_train, fullfile(path_data, 'labels_train_classif.txt'));
   % write_label_data(label_test, fullfile(path_data, 'labels_test_classif.txt'));
-  params.eventsname = {'events_train_hots.dat', 'events_train_classif.dat', 'events_test_classif.dat'};
   file_ev_train_hots = fullfile(params.path_data, params.eventsname{1});
   file_ev_train = fullfile(params.path_data, params.eventsname{2});
   file_ev_test = fullfile(params.path_data, params.eventsname{3});

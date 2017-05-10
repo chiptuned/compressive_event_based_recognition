@@ -18,4 +18,15 @@ octave-workspace
 
 # Data generated
 hots_data*
-N-datasets
+
+N-datasets/nmnist_data/
+
+N-datasets/newdb_tdcut/
+
+N-datasets/N-NMIST/
+
+N-datasets/N-Caltech101/
+
+N-datasets/Faces/
+
+N-datasets/Elie-NMIST/

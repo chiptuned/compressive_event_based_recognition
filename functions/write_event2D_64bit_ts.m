@@ -25,7 +25,8 @@ paddingshift = 16;
 addr = bitshift(ev.x,xshift) + ...
   bitshift(ev.y,yshift) + ...
   bitshift(uint8(ev.p),pshift) + bitshift(0, paddingshift);
-ev.ts = ev.ts+offset;
+
+ev.ts = uint64(ev.ts)+offset;
 fwrite(f,[ev.ts, bitshift(ev.ts,-32), addr]','uint32');
 fclose(f);
-last_event_ts = ev.ts(end)+offset;
+last_event_ts = ev.ts(end);
