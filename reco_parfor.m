@@ -115,3 +115,5 @@ parfor idx_settings = 1:size(all_results,1)
   end
   results(2,idx_settings) = {reco_rates};
 end
+
+save('results.mat', 'results');

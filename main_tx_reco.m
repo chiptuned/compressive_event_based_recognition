@@ -15,9 +15,9 @@ create_events = 1;
 mode_event_generation = 'spikegram_jittered';
 launch_hots = 1;
 nb_levels_crossing = 50;
-ratio_hots_learning_of_train_timit = 0.33;
-ratio_classif_learning_of_train_timit = 0.67;
-ratio_classif_test_of_test_timit = 1;
+ratio_hots_learning_of_train_timit = 0.05;
+ratio_classif_learning_of_train_timit = 0.15;
+ratio_classif_test_of_test_timit = 0.20;
 
 params.path_data = path_data;
 params.nbLayers = 2;
