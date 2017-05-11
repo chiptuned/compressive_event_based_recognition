@@ -17,18 +17,19 @@ whichExampleItIs = 1;
 thresh_events = 50;
 
 for ind = 1:numel(events.ts)
-  if label_format
+  if ~label_format
     ts_max = labels{2}(whichExampleItIs);
     curr_label = labels{3}(whichExampleItIs);
   else
     ts_max = labels{whichExampleItIs,2};
     curr_label = labels{whichExampleItIs,3};
   end
+
   while (events.ts(ind) > ts_max)
     if (signatures(whichExampleItIs - nb_empty_sig, 2) == 0)
       nb_empty_sig = nb_empty_sig + 1;
     else
-      if curr_label == 0 || signatures(whichExampleItIs - nb_empty_sig, 2) < thresh_events
+      if (curr_label == 0) || signatures(whichExampleItIs - nb_empty_sig, 2) < thresh_events
         signatures(whichExampleItIs - nb_empty_sig, :) = 0;
         nb_empty_sig = nb_empty_sig + 1;
       else
@@ -47,7 +48,7 @@ for ind = 1:numel(events.ts)
 end
 
 if signatures(whichExampleItIs - nb_empty_sig, 1) == 0
-  if curr_label == 0 || signatures(whichExampleItIs - nb_empty_sig, 2) < thresh_events
+  if (curr_label == 0) || signatures(whichExampleItIs - nb_empty_sig, 2) < thresh_events
     signatures(whichExampleItIs - nb_empty_sig, :) = 0;
     nb_empty_sig = nb_empty_sig + 1;
   else
