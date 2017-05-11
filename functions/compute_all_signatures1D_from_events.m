@@ -7,7 +7,7 @@ if isequal(size(labels), [1,3])
   nb_label_pres = numel(labels{1});
 else
   label_format = 1;
-  nb_label_pres = size(label_train,1);
+  nb_label_pres = size(labels,1);
 end
 
 signatures = zeros(nb_label_pres,nbCenters+2);
