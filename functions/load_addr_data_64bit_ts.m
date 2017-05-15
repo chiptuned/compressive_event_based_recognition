@@ -49,11 +49,10 @@ fseek(f,bof+8,'bof');
 allAddr=uint32(fread(f,numEvents,'uint32',evSize-4,'l'));
 
 fclose(f);
-
-td_data.ts = double(allTs);
+td_data.ts = allTs;
 % make sure nonnegative or an error will result from bitand
 % (glitches can somehow result in negative addressses...)
-td_data.addr=abs(allAddr);
+td_data.addr=allAddr;
 if exist('evType', 'var')
   td_data.type = evType;
 end

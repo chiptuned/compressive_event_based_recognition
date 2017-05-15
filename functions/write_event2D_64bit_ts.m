@@ -18,15 +18,15 @@ if ~exist('offset', 'var')
 end
 
 xshift=0; % bits to shift x to right
-yshift=8; % bits to shift y to right
-pshift=15; % bits to shift p to right
-paddingshift = 16;
+yshift=9; % bits to shift y to right
+pshift=17; % bits to shift p to right
+paddingshift = 18;
 
-addr = bitshift(ev.x,xshift) + ...
-  bitshift(ev.y,yshift) + ...
-  bitshift(uint8(ev.p),pshift) + bitshift(0, paddingshift);
+addr = bitshift(uint32(ev.x),xshift) + ...
+  bitshift(uint32(ev.y),yshift) + ...
+  bitshift(uint32(ev.p),pshift) + bitshift(0, paddingshift);
 
 ev.ts = uint64(ev.ts)+offset;
-fwrite(f,[ev.ts, bitshift(ev.ts,-32), addr]','uint32');
+fwrite(f,[mod(ev.ts, 2^32), bitshift(ev.ts,-32), addr]','uint32','l');
 fclose(f);
 last_event_ts = ev.ts(end);
