@@ -27,7 +27,7 @@ params.nbDim = 2;
 params.nbChannels = nb_channels;
 params.nbPols = numel(unique(events_train_hots.p));
 params.viewer = 1;
-params.viewer_port = 3333;
+params.viewer_port = 3444;
 params.viewer_refresh_seconds = 6;
 
 if launch_hots

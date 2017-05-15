@@ -66,14 +66,15 @@ for ind = 1:size(cell_events_train_classif,1)
   borne_inf = borne_inf + numel_events_train_classif(ind);
   last_offset = write_event2D_64bit_ts(cell_events_train_classif{ind,1}, ...
     fullfile(path_data,'events_train_classif.dat'), 'a', offset);
-  label_train{ind,1} = {offset};
-  label_train{ind,2} = {last_offset};
-  label_train{ind,3} = cell_events_train_classif{ind,2};
+  label_train(ind,1) = {offset};
+  label_train(ind,2) = {last_offset};
+  label_train(ind,3) = cell_events_train_classif{ind,2};
   offset = last_offset + offset_interval;
   if mod(ind,size(cell_events_train_classif,1)/100) == 0
     waitbar(ind/size(cell_events_train_classif,1), bar);
   end
 end
+offset = 0;
 delete(bar)
 bar = waitbar(0,'Creating events\_test\_classif');
 numel_events_test_classif = cellfun(@(ev) numel(ev.ts), cell_events_test(:,1));
@@ -90,9 +91,9 @@ for ind = 1:size(cell_events_test,1)
   borne_inf = borne_inf + numel_events_test_classif(ind);
   last_offset = write_event2D_64bit_ts(cell_events_test{ind,1}, ...
     fullfile(path_data,'events_test_classif.dat'), 'a', offset);
-  label_test{ind,1} = {offset};
-  label_test{ind,2} = {last_offset};
-  label_test{ind,3} = cell_events_test{ind,2};
+  label_test(ind,1) = {offset};
+  label_test(ind,2) = {last_offset};
+  label_test(ind,3) = cell_events_test{ind,2};
   offset = last_offset + offset_interval;
   if mod(ind,size(cell_events_test,1)/100) == 0
     waitbar(ind/size(cell_events_test,1), bar);

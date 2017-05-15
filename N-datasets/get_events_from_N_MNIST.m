@@ -2,7 +2,7 @@ function [all_events_train, all_events_test] = get_events_from_N_MNIST(path_data
 
 %% Variables initialization
 if ~exist('path_dataset', 'var')
-  path_dataset = 'N-NMIST';
+  path_dataset = 'N-MNIST';
 end
 
 if ~exist('path_data', 'var')
