@@ -1,7 +1,8 @@
 function [res] = convert_events_into_tensor(ev, timestep, final_time, boardSize, normalize_bins)
 
-nb_bins = double(ceil(final_time/timestep));
+nb_bins = ceil(double(final_time)/timestep);
 ev_activity = zeros(boardSize(1), boardSize(2), nb_bins);
+size_ev_start = size(ev_activity);
 curr_bin = 1;
 
 for ind = 1:numel(ev.ts)
@@ -11,14 +12,7 @@ for ind = 1:numel(ev.ts)
   while ev.ts(ind) > (curr_bin*timestep)
     curr_bin = curr_bin+1;
   end
-  try
-    ev_activity(ev.x(ind), ev.y(ind), curr_bin) = ev_activity(ev.x(ind), ev.y(ind), curr_bin) + 1;
-  catch
-     fprintf('numel events : %d\n', numel(ev.ts));
-     fprintf('curr ev : (%d, %d, %d, %d)\n', ev.ts(ind), ev.x(ind), ev.y(ind), ev.p(ind));
-     fprintf('timestep %d, finaltime %d, curr_bin %d\n', timestep, final_time, curr_bin);
-     error('index m8.');
-  end
+  ev_activity(ev.x(ind), ev.y(ind), curr_bin) = ev_activity(ev.x(ind), ev.y(ind), curr_bin) + 1;
 end
 
 if ~exist('normalize_bins', 'var')
