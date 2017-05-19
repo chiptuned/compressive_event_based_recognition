@@ -1,8 +1,16 @@
-clearvars -except all_events_train all_events_test
+clearvars -except all_events_train all_events_test train_feat_reduced train_feat_reduced
 close all;
 
 tstart = tic;
 addpath(genpath('../functions'))
+rng(0,'twister');
+
+%% Start Parpool
+N_workers = 72;
+myCluster=parcluster('local');
+myCluster.NumWorkers=N_workers;
+poolobj = parpool(myCluster,N_workers);
+fprintf('Pool started, with %.0f workers. Elapsed time : %f seconds\n', N_workers, toc(tstart));
 
 %% Load events
 if ~exist('all_events_test', 'var')
@@ -11,127 +19,90 @@ end
 fprintf('Events loaded, elapsed time : %f seconds\n', toc(tstart));
 
 %% Find the temporal tiles parameters
-min_ev_train = min(cellfun(@(ev) min(ev.ts), all_events_train(:,1)));
 max_ev_train = max(cellfun(@(ev) max(ev.ts), all_events_train(:,1)));
-
-min_ev_test = min(cellfun(@(ev) min(ev.ts), all_events_test(:,1)));
 max_ev_test = max(cellfun(@(ev) max(ev.ts), all_events_test(:,1)));
-
-
 max_ev = max([max_ev_train, max_ev_test]);
-% hists_activity = cellfun(@(ev) compute_event_activity(ev, 1000, max_ev, 10), ...
-%   all_events_train(:,1), 'UniformOutput', 0);
-%
-% hold off;
-% for ind = 1:50
-%   plot(hists_activity{ind})
-%   hold on;
-% end
-%
-% cellfun(@(ev) draw_scene_ev2D(ev, 10000, 10000, [35 35]), ...
-%   all_events_train(:,1));
-
-% test = convert_events_into_tensor(all_events_test{1}, 4000, max_ev, [34, 34], 3);
-% for ind = 1:size(test,3)
-%   imagesc(test(:,:,ind))
-%   pause
-% end
 
 size_spatial = [34,34];
 w_gliss_bins = 3;
 w_frame_us = 4000;
+ntrain = size(all_events_train,1);
+ntest = size(all_events_test,1);
 
 fprintf('Parameters computed, elapsed time : %f seconds\n', toc(tstart));
 
 %% Compute tiles
-train_features = zeros(size(all_events_train,1), ...
+feats = zeros(ntrain + ntest, ...
     prod(size_spatial)*(ceil(double(max_ev)/w_frame_us)-2*w_gliss_bins));
-test_features = zeros(size(all_events_test,1), ...
-    prod(size_spatial)*(ceil(double(max_ev)/w_frame_us)-2*w_gliss_bins));
-
-N_workers = 72;
-myCluster=parcluster('local');
-myCluster.NumWorkers=N_workers;
-parpool(myCluster,N_workers)
-
-parfor ind = 1:size(all_events_train,1)
-  train_features(ind,:) = reshape(convert_events_into_tensor(...
+parfor ind = 1:ntrain
+  feats(ind,:) = reshape(convert_events_into_tensor(...
     all_events_train{ind,1}, w_frame_us, max_ev, size_spatial, w_gliss_bins) ...
     ,1,[]);
 end
-parfor ind = 1:size(all_events_test,1)
-  test_features(ind,:) = reshape(convert_events_into_tensor(...
+parfor ind = 1:ntest
+  feats(ind+ntrain,:) = reshape(convert_events_into_tensor(...
     all_events_test{ind,1}, w_frame_us, max_ev, size_spatial, w_gliss_bins) ...
     ,1,[]);
 end
 
 fprintf('Tiles computed, elapsed time : %f seconds\n', toc(tstart));
 
-% train_features = cellfun(@(ev) reshape( ...
-%   convert_events_into_tensor(ev, w_frame_us, max_ev, size_spatial, w_gliss_bins) ...
-%   ,1,[]), ...
-%   all_events_train(:,1), 'UniformOutput', 0);
-% test_features = cellfun(@(ev) reshape( ...
-%   convert_events_into_tensor(ev, w_frame_us, max_ev, size_spatial, w_gliss_bins) ...
-%   ,1,[]), ...
-%   all_events_test(:,1), 'UniformOutput', 0);
-
 %% Reduce dimensionnality
 % FSVD with power method
-X = [train_features;test_features];
 nb_dims_svd = 300;
-tic
-[U2, S2, V2] = fsvd(X, nb_dims_svd, 2, true);
-toc
-new_X = U2*S2;
-train_feat_reduced = new_X(1:60000,:);
-test_feat_reduced = new_X(60001:end,:);
-
-% preserve 99% variance but of fsvd so need to deep down
-% because actually fsvd cuts to the nb_dims_svd dims and don't preserve
-% a specific amount of variance (probably around 80-95%)
-
-% sing_values = diag(S2);
-% normsqS = sum(sing_values.^2);
-% k = find(cumsum(sing_values.^2)/normsqS >= 0.97, 1);
+[U2, S2, V2] = fsvd(feats, nb_dims_svd, 2, true);
+new_feats = U2*S2;
+train_feat_reduced = new_feats(1:ntrain,:);
+test_feat_reduced = new_feats(ntrain+(1:ntest),:);
 
 fprintf('SVD computed, elapsed time : %f seconds\n', toc(tstart));
 
+clearvars -except tstart poolobj all_events_train all_events_test train_feat_reduced test_feat_reduced
 
-%% Shuffling
-% intule car dans nprtool mais on le fait quand meme
-idx_train = randperm(60000);
-train_feats_mlp = train_feat_reduced(idx_train,:);
-train_label_mlp = cellfun(@(a) a,all_events_train(idx_train,2));
+%% Shuffling and MLP
+nb_tries = 10;
+nets_save = cell(1,nb_tries);
+seeds = randi(1000000,1,nb_tries);
 
-classes = unique(train_label_mlp);
-nb_classes = numel(classes);
+parfor ind = 1:nb_tries
+    
+    rng(seeds(ind));
+    idx_train = randperm(60000);
+    x = train_feat_reduced(idx_train,:)';
+    t = full(ind2vec(cellfun(@(a) a,all_events_train(idx_train,2))'));
+    idx_test = randperm(10000);
+    x2 = test_feat_reduced(idx_test,:)';
+    t2 = full(ind2vec(cellfun(@(a) a,all_events_test(idx_test,2))'));
 
-nb_examples_train = numel(train_label_mlp);
-train_output = zeros(nb_examples_train, nb_classes);
-for ind = 1:nb_examples_train
-  curr_class = find(train_label_mlp(ind)==classes);
-  train_output(ind,curr_class) = 1;
+    trainFcn = 'trainscg';  % Scaled conjugate gradient backpropagation. help nntrain
+    % Create a Pattern Recognition Network
+    hiddenLayerSize = 1000;
+    net = patternnet(hiddenLayerSize);
+
+    % Input and Output Pre/Post-Processing Functions ? help nnprocess
+    net.divideFcn = 'divideblock';  % Divide data in blocks (shuffled before)
+    net.divideMode = 'sample';  % Divide up every sample
+    net.divideParam.trainRatio = 0.75;
+    net.divideParam.valRatio = 0.25;
+    net.divideParam.testRatio = 0;
+    net.performFcn = 'crossentropy';  % Cross-Entropy, help nnperformance
+    net.plotFcns = {'plotperform','plottrainstate','ploterrhist', ...
+        'plotconfusion', 'plotroc'};
+
+    % Train the Network
+    net.trainParam.showWindow=0;
+    [net,tr] = train(net,x,t);
+    y = net(x);
+    y2 = net(x2);
+    reco_rate = 1-confusion(t2, y2);
+    nets_save{ind} = {net, tr, seeds(ind), reco_rate}; 
 end
+reco_rates = cellfun(@(cell) cell{4}, nets_save);
+mean_reco_rates = mean(reco_rates)*100;
+range_reco_rates = range(reco_rates)*100;
+std_reco_rates = std(reco_rates)*100;
 
-idx_test = randperm(10000);
-test_feats_mlp = test_feat_reduced(idx_test,:);
-test_label_mlp = cellfun(@(a) a,all_events_test(idx_test,2));
+save('test_save_nmnist_tensor.mat', 'nets_save');
 
-nb_examples_test = numel(test_label_mlp);
-test_output = zeros(nb_examples_test, nb_classes);
-for ind = 1:nb_examples_test
-  curr_class = find(test_label_mlp(ind)==classes);
-  test_output(ind,curr_class) = 1;
-end
-
-fprintf('Features order is now shuffled, elapsed time : %f seconds\n', toc(tstart));
-
-clearvars -except all_events_train all_events_test train_output test_output train_feats_mlp test_feats_mlp
-
-% then we use nprtool, using 45000 train 12000 val 3000 test samples,
-% 1 layer of 1000 neurons, on R2016a.
-% then the error is on test data
-% 10 fold cross validation
-% 3.58 3.39 3.33 3.57 3.28 3.33 3.36 3.55 3.6 3.41
-% mean : 96.56%   std : 0.1219   range : +- 0.16%   meanerr : 3.44%
+fprintf('Done! Elapsed time : %f seconds\n', toc(tstart));
+delete(poolobj)
