@@ -1,6 +1,8 @@
 function [centers, out_events] = compute_matlab_hots_new(params, events)
 
-fprintf('Learning set contains %d events.\n', numel(events{1}.ts));
+fprintf('Hots learning set contains %d events.\n', numel(events{1}.ts));
+fprintf('Classifier learning set contains %d events.\n', numel(events{2}.ts));
+fprintf('Test set contains %d events.\n', numel(events{3}.ts));
 out_events = cell(numel(events)-1, params.nbLayers);
 centers = cell(1, params.nbLayers);
 
