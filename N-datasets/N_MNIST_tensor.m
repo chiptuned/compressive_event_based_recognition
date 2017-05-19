@@ -60,7 +60,7 @@ fprintf('SVD computed, elapsed time : %f seconds\n', toc(tstart));
 clearvars -except tstart poolobj all_events_train all_events_test train_feat_reduced test_feat_reduced
 
 %% Shuffling and MLP
-nb_tries = 10;
+nb_tries = 20;
 nets_save = cell(1,nb_tries);
 seeds = randi(1000000,1,nb_tries);
 
@@ -98,8 +98,10 @@ parfor ind = 1:nb_tries
     nets_save{ind} = {net, tr, seeds(ind), reco_rate}; 
 end
 reco_rates = cellfun(@(cell) cell{4}, nets_save);
+reco_rates = sort(reco_rates, 'descend');
+reco_rates = reco_rates(1:floor(end/2));
 mean_reco_rates = mean(reco_rates)*100;
-range_reco_rates = range(reco_rates)*100;
+range_reco_rates = range(reco_rates)*50;
 std_reco_rates = std(reco_rates)*100;
 
 save('test_save_nmnist_tensor.mat', 'nets_save');
