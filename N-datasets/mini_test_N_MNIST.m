@@ -27,12 +27,16 @@ ratio = 20/100; % of events in train are to train hots
 nb_channels = [35,35];
 params.path_data = path_data;
 params.nbLayers = 3;
-params.nbCenters = [8, 16, 32, 32, 256];
+params.nbCenters = [40, 80, 160, 32, 256];
 params.tau = [10000., 50000., 250000., 640000., 256000.];
-params.radius = [4, 8, 16, 32, 32];
+params.radius = [6, 8, 10, 32, 32];
 params.nbDim = 2;
 params.nbChannels = nb_channels;
 %events{1}.p = zeros(size(events{1}.p))
 params.nbPols = numel(unique(events{1}.p));
 
 [centers, out_events] = compute_matlab_hots_new(params, events);
+
+% Transformation inverse en cell array
+% ev
+[train_classif, test_classif] = dat_to_evarray(out_events, labels, idx_pres);

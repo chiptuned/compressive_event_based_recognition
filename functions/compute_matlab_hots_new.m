@@ -5,6 +5,7 @@ out_events = cell(numel(events)-1, params.nbLayers);
 centers = cell(1, params.nbLayers);
 
 new_params = params;
+tstart = tic;
 for layer = 1:params.nbLayers
     fprintf('\nLayer %d\n', layer)
 
@@ -27,4 +28,5 @@ for layer = 1:params.nbLayers
     out_events{1, layer} = compute_hots_layer_offline(events{2}, centers{layer}, new_params);
     out_events{2, layer} = compute_hots_layer_offline(events{3}, centers{layer}, new_params);
 end
+fprintf('Hots done in %.0f seconds.\n', toc(tstart));
 end
