@@ -136,13 +136,27 @@ for batch = 1:nb_batch
         proj{ind} = 0;
         mu{ind} = 0;
       else
-        [coeff,score,~,~,explained,mu{ind}] = pca(all_ts(1:nb_events_kept(ind),:,ind), 'Algorithm', 'eig', 'Rows', 'complete');
+        try
+          [coeff,score,~,~,explained,mu{ind}] = pca(all_ts(1:nb_events_kept(ind),:,ind), 'Algorithm', 'svd', 'Rows', 'complete');
+        catch ex
+          save('lastcrash-pca', 'all_ts(1:nb_events_kept(ind),:,ind)', 'ind', 'nb_events_kept(ind)')
+          sum(all_ts(1:nb_events_kept(ind),:,ind))
+          sum(all_ts(1:nb_events_kept(ind),:,ind)')
+          nb_events_kept(ind)
+          imagesc(all_ts(1:nb_events_kept(ind),:,ind))
+          drawnow;
+          rethrow(ex)
+        end
         normsqS = sum(explained.^2);
         k{ind} = find(cumsum(explained.^2)/normsqS >= ratio_variance_keep, 1);
         pca_eigv{ind} = coeff;
-        %FIXME : garder tous les events, les projeter pour refaire le score
-        % prendre les allts2, refaire les scores
-        tmp = inv(coeff);
+        try
+          tmp = inv(coeff);
+        catch ex
+          save('lastcrash_inv_coeff', 'coeff')
+          size(coeff)
+          rethrow(ex);
+        end
         proj{ind} = tmp(1:k{ind},:)';
       end
       all_ts_proj = [all_ts_proj, (all_ts2(:,:,ind)-repmat(mu{ind},size(all_ts2,1),1))*proj{ind}];

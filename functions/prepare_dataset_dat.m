@@ -41,9 +41,11 @@ for ind_ev = 1:numel(cellev)
   offset = 0;
   nbev_tot = sum(num_ev{ind_ev});
   nbpres = size(cellev{ind_ev},1);
-  for ind_f = 1:nb_f
-    events{ind_ev}.(fdn{ind_f}) = zeros(nbev_tot, 1, evclasses{ind_f});
+  for ind_f = 1:nb_f-1
+    events{ind_ev}.(fdn_wo_ts{ind_f}) = zeros(nbev_tot, 1, evclasses{ind_f});
   end
+  events{ind_ev}.ts = zeros(nbev_tot, 1, 'uint64');
+
   borne_inf = 0;
   bar = waitbar(0,['Creating events (',num2str(ind_ev), ' of 3)']);
   for ind = 1:nbpres
