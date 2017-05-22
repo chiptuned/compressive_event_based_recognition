@@ -43,18 +43,20 @@ if learning
   nb_events_kept = zeros(1,nbPols);
   nb_events_kept_allp = 0;
 else
-  for ind = 1:nbPols+1
-    tmp = inv(centers.pca_eigv{ind});
-    centers.pca_eigv{ind} = tmp(1:centers.k{ind},:)';
-  end
   fprintf('Propagating events..\n');
 end
 
 for batch = 1:nb_batch
   try
-    all_ts = zeros(size_batch(batch), nbFeats_pol, nbPols);
-    all_ts2 = zeros(size_batch(batch), nbFeats_pol, nbPols);
+    if learning
+      all_ts = zeros(max_offline_allts, nbFeats_pol, nbPols);
+      all_ts2 = zeros(max_offline_allts, nbFeats_pol, nbPols);
+    else
+      all_ts = zeros(size_batch(batch), nbFeats_pol, nbPols);
+      all_ts2 = zeros(size_batch(batch), nbFeats_pol, nbPols);
+    end
   catch ex
+    size_batch
     [size_batch(batch), nbFeats_pol, nbPols]
     fprintf('That''s %.1fG.\n', size_batch(batch)*nbFeats_pol*nbPols*8/(1024^3));
     rethrow(ex)
@@ -119,28 +121,38 @@ for batch = 1:nb_batch
     k = cell(1,nbPols+1);
     pca_eigv = cell(1,nbPols+1);
     mu = cell(1,nbPols+1);
+    proj = cell(1,nbPols+1);
     all_ts_proj = [];
 
     for ind = 1:nbPols
       % figure(17)
       % imagesc(all_ts(1:nb_events_kept,:,ind));
       % drawnow;
-      [coeff,score,~,~,explained,mu{ind}] = pca(all_ts(1:nb_events_kept(ind),:,ind), 'Algorithm', 'eig', 'Rows', 'complete');
-      normsqS = sum(explained.^2);
-      k{ind} = find(cumsum(explained.^2)/normsqS >= ratio_variance_keep, 1);
-      pca_eigv{ind} = coeff;
-      %FIXME : garder tous les events, les projeter pour refaire le score
-      % prendre les allts2, refaire les scores
-      tmp = inv(coeff);
-      tmp = tmp(1:k{ind},:)';
-      all_ts_proj = [all_ts_proj, (all_ts2(:,:,ind)-repmat(mu{ind},size(all_ts2,1),1))*tmp];
+      if nb_events_kept(ind) == 0
+        msg = ['Polarity ', num2str(ind), ' doesn''t contain relevant events, discarding...'];
+        warning(msg);
+        k{ind} = 0;
+        pca_eigv{ind} = 0;
+        proj{ind} = 0;
+        mu{ind} = 0;
+      else
+        [coeff,score,~,~,explained,mu{ind}] = pca(all_ts(1:nb_events_kept(ind),:,ind), 'Algorithm', 'eig', 'Rows', 'complete');
+        normsqS = sum(explained.^2);
+        k{ind} = find(cumsum(explained.^2)/normsqS >= ratio_variance_keep, 1);
+        pca_eigv{ind} = coeff;
+        %FIXME : garder tous les events, les projeter pour refaire le score
+        % prendre les allts2, refaire les scores
+        tmp = inv(coeff);
+        proj{ind} = tmp(1:k{ind},:)';
+      end
+      all_ts_proj = [all_ts_proj, (all_ts2(:,:,ind)-repmat(mu{ind},size(all_ts2,1),1))*proj{ind}];
     end
 
     [coeff,score,~,~,explained,mu{nbPols+1}] = pca(all_ts_proj, 'Algorithm', 'eig');
     normsqS = sum(explained.^2);
     k{nbPols+1} = find(cumsum(explained.^2)/normsqS >= ratio_variance_keep, 1);
-    % tmp = inv(coeff);
-    % pca_eigv{nbPols+1} = tmp(1:k{nbPols+1},:)';
+    tmp = inv(coeff);
+    proj{nbPols+1} = tmp(1:k{nbPols+1},:)';
     pca_eigv{nbPols+1} = coeff;
     new_score = score(:,1:k{nbPols+1});
 
@@ -149,8 +161,9 @@ for batch = 1:nb_batch
     [~,C] = kmeans(new_score, nbCenters,'Distance','sqeuclidean',...
         'Replicates',3,'Options',opts);
     warning('on', 'stats:kmeans:FailedToConvergeRep')
-     % RELANCER
+
     centers.pca_eigv = pca_eigv;
+    centers.proj = proj;
     centers.data = C;
     centers.k = k;
     centers.mu = mu;
@@ -158,9 +171,9 @@ for batch = 1:nb_batch
     %% Computing distances
     pol_proj = [];
     for indp = 1:nbPols
-      pol_proj = [pol_proj, (all_ts(:,:,indp)-repmat(centers.mu{indp},size(all_ts,1),1))*centers.pca_eigv{indp}];
+      pol_proj = [pol_proj, (all_ts(:,:,indp)-repmat(centers.mu{indp},size(all_ts,1),1))*centers.proj{indp}];
     end
-    Ctx_proj = (pol_proj-repmat(centers.mu{nbPols+1},size(all_ts,1),1))*centers.pca_eigv{nbPols+1};
+    Ctx_proj = (pol_proj-repmat(centers.mu{nbPols+1},size(all_ts,1),1))*centers.proj{nbPols+1};
     [~, nc] = min(pdist2(Ctx_proj,centers.data),[],2); %nc : neareset center
 
     %% Fire events
