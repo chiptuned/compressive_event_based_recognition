@@ -13,11 +13,11 @@ learning = params.learning;
 dimension = numel(nbChannels);
 nbFeats_pol = (2*radius+1)^dimension;
 
-ratio_variance_keep = 0.8;
+ratio_variance_keep = 0.999;
 % If in a polarity there is less nonzeros elt than this, discard it
 thresh_nonzero_pol = floor(0.05 * nbFeats_pol);
 
-MAX_MEMORY_ALLOCATION_GO = 8;
+MAX_MEMORY_ALLOCATION_GO = 6;
 max_offline_allts = floor(MAX_MEMORY_ALLOCATION_GO*1e9/2/8/nbFeats_pol/nbPols/2); % wtfbbq
 
 nb_batch = 1;
@@ -139,7 +139,9 @@ for batch = 1:nb_batch
         try
           [coeff,score,~,~,explained,mu{ind}] = pca(all_ts(1:nb_events_kept(ind),:,ind), 'Algorithm', 'svd', 'Rows', 'complete');
         catch ex
-          save('lastcrash-pca', 'all_ts(1:nb_events_kept(ind),:,ind)', 'ind', 'nb_events_kept(ind)')
+          mat_pca = all_ts(1:nb_events_kept(ind),:,ind);
+          nb_events_kept_this_ind = nb_events_kept(ind);
+          save('lastcrash-pca', 'mat_pca', 'ind', 'nb_events_kept_this_ind')
           sum(all_ts(1:nb_events_kept(ind),:,ind))
           sum(all_ts(1:nb_events_kept(ind),:,ind)')
           nb_events_kept(ind)
@@ -151,9 +153,17 @@ for batch = 1:nb_batch
         k{ind} = find(cumsum(explained.^2)/normsqS >= ratio_variance_keep, 1);
         pca_eigv{ind} = coeff;
         try
-          tmp = inv(coeff);
+          if numel(unique(size(coeff))) ~= 1
+            tmp = pinv(coeff);
+          else
+            tmp = inv(coeff);
+          end
         catch ex
-          save('lastcrash_inv_coeff', 'coeff')
+          mat_pca = all_ts(1:nb_events_kept(ind),:,ind);
+          nb_events_kept_this_ind = nb_events_kept(ind);
+          mu_this_ind = mu{ind};
+          save('lastcrash_inv_coeff', 'coeff', 'mat_pca', ...
+            'ind', 'nb_events_kept_this_ind', 'score', 'explained', 'mu_this_ind');
           size(coeff)
           rethrow(ex);
         end
@@ -162,10 +172,30 @@ for batch = 1:nb_batch
       all_ts_proj = [all_ts_proj, (all_ts2(:,:,ind)-repmat(mu{ind},size(all_ts2,1),1))*proj{ind}];
     end
 
-    [coeff,score,~,~,explained,mu{nbPols+1}] = pca(all_ts_proj, 'Algorithm', 'eig');
+
+    try
+      [coeff,score,~,~,explained,mu{nbPols+1}] = pca(all_ts_proj, 'Algorithm', 'svd', 'Rows', 'complete');
+    catch ex
+      save('lastcrash-pca', 'all_ts_proj', 'ind', 'nb_events_kept_this_ind')
+      imagesc(all_ts_proj)
+      drawnow;
+      rethrow(ex)
+    end
     normsqS = sum(explained.^2);
     k{nbPols+1} = find(cumsum(explained.^2)/normsqS >= ratio_variance_keep, 1);
-    tmp = inv(coeff);
+    try
+      if numel(unique(size(coeff))) ~= 1
+        tmp = pinv(coeff);
+      else
+        tmp = inv(coeff);
+      end
+    catch ex
+      mu_this_ind = mu{nbPols+1};
+      save('lastcrash_inv_coeff', 'coeff', 'all_ts_proj', ...
+        'score', 'explained', 'mu_this_ind');
+      size(coeff)
+      rethrow(ex);
+    end
     proj{nbPols+1} = tmp(1:k{nbPols+1},:)';
     pca_eigv{nbPols+1} = coeff;
     new_score = score(:,1:k{nbPols+1});

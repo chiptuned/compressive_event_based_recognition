@@ -13,23 +13,22 @@ if (~exist('train', 'var') || ~exist('test', 'var'))
   load(fullfile(path_data, 'all_events.mat'))
   idx_tr = randperm(size(all_events_train,1)); % todel
   idx_test = randperm(size(all_events_test,1)); % todel
-  train = all_events_train(idx_tr(1:100),:); % todel
-  test = all_events_test(idx_test(1:100),:); % todel
+  train = all_events_train(idx_tr(1:60),:); % todel
+  test = all_events_test(idx_test(1:10),:); % todel
   % add : train = all_events_train;
   % add : test = all_events_test;
-
   clear all_events_train all_events_test idx_tr idx_test
 end
 
-ratio = 20/100; % of events in train are to train hots
+ratio = 10/100; % of events in train are to train hots
 [events, labels, idx_pres] = prepare_dataset_dat(train, test, path_data, ratio);
 
 nb_channels = [35,35];
 params.path_data = path_data;
-params.nbLayers = 3;
-params.nbCenters = [40, 80, 160, 32, 256];
+params.nbLayers = 2;
+params.nbCenters = [24, 32, 64, 32, 256];
 params.tau = [10000., 50000., 250000., 640000., 256000.];
-params.radius = [6, 8, 10, 32, 32];
+params.radius = [8, 12, 16, 32, 32];
 params.nbDim = 2;
 params.nbChannels = nb_channels;
 %events{1}.p = zeros(size(events{1}.p))
@@ -39,4 +38,5 @@ params.nbPols = numel(unique(events{1}.p));
 
 % Transformation inverse en cell array
 % ev
-[train_classif, test_classif] = dat_to_evarray(out_events, labels, idx_pres);
+
+[out_ev_array] = dat_to_evarray(out_events, labels(2:end), idx_pres(2:end));
